@@ -1,0 +1,19 @@
+Proceso programa2
+Logico z=Verdadero;
+Entero b=4 c=3,d=5;
+Escribir "Hola mundo",5;
+Caracter x='s';
+ Leer a;
+ Si (a>b) Entonces
+  Leer b;
+  Leer c;
+  Leer d;
+  Escribir "hola","mundo";
+ FinSi
+Mientras(x/y+8*45&&h)Hacer
+  Leer f;
+Mientras(a!=b)Hacer
+  Leer f;  
+FinMientras
+FinMientras
+FinProceso
