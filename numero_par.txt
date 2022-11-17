@@ -1,0 +1,10 @@
+Proceso numero_par
+Entero n;
+Escribir "Escribe un numero -> ";
+Leer n;
+Si (n % 2 == 0) Entonces
+	Escribir "Es par";
+Sino
+    Escribir "No es par";
+FinSi
+FinProceso

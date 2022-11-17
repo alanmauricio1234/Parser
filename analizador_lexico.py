@@ -290,7 +290,7 @@ class AnalizadorLexico:
 
 		# for t in self.L:
 		# 	print(t)
-		print('Tamanio de elementos: ', tam)
+		# print('Tamanio de elementos: ', tam)
 		#print(self.L)
 
 

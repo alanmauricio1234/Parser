@@ -14,12 +14,22 @@ class Verificador:
     
     def obtener_codigo(self):
         if not self.band:
+            self.crear_archivo()
             return self.codigo
-        return 'Hay errores :('
+        
+        # return 'Hay errores :('
+    def crear_archivo(self):
+        try:
+            nombre_archivo = self.nom_programa + '.c'
+            archivo = open(nombre_archivo, 'w')
+            archivo.write(self.codigo)
+            archivo.close()
+        except:
+            print('Ocurrio un error al crear el archivo :(')
 
 v = Verificador()
 # Creamos nuestro analizador lexico
-l = analizador_lexico.AnalizadorLexico('programa1.txt')
+l = analizador_lexico.AnalizadorLexico('numeros_pares.txt')
 # Creamos la lista de tokens
 l.crear_lista()
 
@@ -75,6 +85,7 @@ def proceso():
             v.codigo += v.ident * v.e + 'return 0;\n'
             v.codigo += '}\n'
             v.ident -= 1
+            v.identificadores.clear()
             print('Se reconoce FINPROCESO')
 
 # <listaOperaciones> ::= <operacion> <listaOperaciones> | <operacion>
@@ -194,7 +205,7 @@ def es_tipo(t):
     elif t.subtipo_token == subtipos_token.REAL:
         return v.ident * v.e + 'float'
     elif t.tipo_token == tipo_token.CHAR:
-        return v.ident * v.e + 'char'
+        return v.ident * v.e + 'int'
 
 def tipo():
     t = l.obtener_token()
@@ -515,7 +526,7 @@ def dl():
         if not se_espera(t.get_tipo_token(), tipo_token.IDENTIFICADOR):
             error(tipo_token.IDENTIFICADOR, t.get_tipo_token(), t.get_num_linea())
         else:
-            print('Se reconoce IDENTIFICADOR: ', t.get_tipo_token())
+            print('Se reconoce IDENTIFICADOR: ', t.lexema)
             v.identificadores[t.lexema] = '%d'
             v.codigo += t.lexema
             # print(t)
@@ -704,7 +715,7 @@ def leer():
                 else:
                     v.codigo += ')'
             v.lista_aux.clear()
-            v.codigo += ');\n'
+            v.codigo += ';\n'
             # print(t)
 
 
@@ -719,7 +730,7 @@ def lista_leer():
         else:
             print('Se reconoce IDENTIFICADOR: ', t.lexema)
             try:
-                v.codigo += v.identificadores[t.lexema] + ' '
+                v.codigo += v.identificadores[t.lexema]
                 # v.codigo += t.lexema
                 v.lista_aux.append(t.lexema)
             except:
@@ -745,8 +756,8 @@ def escribir():
             error(subtipos_token.ESCRIBIR, t.get_subtipo_token(), t.get_num_linea())
         else:
             print('Se reconoce ESCRIBIR: ')
-            v.codigo += v.ident * v.e 
-            v.codigo += 'printf('
+            # v.codigo += v.ident * v.e 
+            # v.codigo += 'printf('
             # print(t)
     lista_valor()
     t = l.obtener_token()
@@ -755,7 +766,7 @@ def escribir():
             error(subtipos_token.PUNTOYCOMA, t.get_subtipo_token(), t.get_num_linea())
         else:
             print('Se reconoce PUNTOYCOMA ; ')
-            v.codigo += ');\n'
+            # v.codigo += ');\n'
             # print(t)
 
 # <Valor> ::= <valor> | <valor> COMA <listaValor>
@@ -778,13 +789,20 @@ def valor():
     if t != None:
         if t.tipo_token == tipo_token.CADENA:
             print('Se reconocio una String: ', t.lexema)
-            v.codigo += t.lexema
+            v.codigo += v.ident * v.e 
+            v.codigo += 'printf('
+            v.codigo += t.lexema + ');\n'
             # print(t)
         else:
             l.regresar_token(t)
             # Es una expresion
             # Puede ser Identificador o Int o Float o Bool o Char
+            v.codigo += v.ident * v.e 
+            v.codigo += 'printf("'
+            v.lista_aux.append( 'escribir' )
             expresion()
+            v.codigo += ');\n'
+            v.lista_aux.clear()
 
 # <Si> ::= SI (<expresion>) ENTONCES <listaOperaciones> FINSI
 #         |SI (<expresion>) ENTONCES <listaOperaciones> SINO <listaOperaciones> FINSI
@@ -844,9 +862,10 @@ def si():
             print('Se reconoce Sino')
             v.ident -= 1
             v.codigo += v.ident * v.e
-            v.codigo += '}\n'
-            v.codigo += v.ident * v.e
+            v.codigo += '} '
+            # v.codigo += v.ident * v.e
             v.codigo += 'else {\n'
+            v.ident += 1
             # print(t)
             lista_operaciones()
             
@@ -864,7 +883,7 @@ def si():
             v.ident -= 1
             v.codigo += v.ident * v.e
             v.codigo += '}\n'
-            v.ident -= 1
+            # v.ident -= 1
             # print(t)
     
 
@@ -909,7 +928,7 @@ def mientras():
             error(subtipos_token.HACER, t.subtipo_token, t.num_linea)
         else:
             print('Se reconoce HACER: ')
-            v.codigo += '{\n'
+            v.codigo += ' {\n'
             v.ident += 1
             # print(t)
     
@@ -924,8 +943,9 @@ def mientras():
         else:
             print('Se reconoce FINMIENTRAS:')
             v.ident -= 1
+            v.codigo += v.ident * v.e
             v.codigo += '}\n'
-            v.ident -= 1
+            # v.ident -= 1
             # print(t)
 
 # <para>::= PARA <ID> = <op> HASTA <op> HACER <listaOperacoones> FINPARA
@@ -996,7 +1016,7 @@ def para():
         else:
             l.regresar_token(t)
             op()
-            v.codigo += '; ' + v.lista_aux[0] + '++;'
+            v.codigo += '; ' + v.lista_aux[0] + '++'
     
     # HACER
     t = l.obtener_token()
@@ -1023,7 +1043,7 @@ def para():
             v.ident -= 1
             v.codigo += v.ident * v.e
             v.codigo += '}\n'
-            v.ident -= 1
+            # v.ident -= 1
             # print(t)
 
 # <op> ::= Int | <ID>
@@ -1339,28 +1359,54 @@ def F():
         # Int
         if (t.subtipo_token == subtipos_token.ENTERO):
             print('Se reconoce ENTERO: ', t.lexema)
-            v.codigo += t.lexema
+            if 'escribir' in v.lista_aux:
+                v.codigo += t.lexema + '"'
+            else:
+                v.codigo += t.lexema
+            # v.codigo += t.lexema
             # print(t)
         # Float
         elif t.subtipo_token == subtipos_token.REAL:
             print('Se reconoce REAL: ', t.lexema)
-            v.codigo += t.lexema
+            if 'escribir' in v.lista_aux:
+                v.codigo += t.lexema + '"'
+            else:
+                v.codigo += t.lexema
+            # v.codigo += t.lexema
             # print(t)
         # Bool
         elif t.subtipo_token == subtipos_token.VERDADERO:
             print('Se reconoce LOGICO: ', t.lexema)
-            v.codigo += '1'
+            if 'escribir' in v.lista_aux:
+                v.codigo += t.lexema + '"'
+            else:
+                v.codigo += '1'
         elif t.subtipo_token == subtipos_token.FALSO:
             print('Se reconocio LOGICO: ', t.lexema)
-            v.codigo += '0'
+            if 'escribir' in v.lista_aux:
+                v.codigo += t.lexema + '"'
+            else:
+                v.codigo += '0'
         # Char
         elif t.tipo_token == tipo_token.CHAR:
             print('Se reconoce CHAR: ', t.lexema)
-            v.codigo += t.lexema
+            if 'escribir' in v.lista_aux:
+                v.codigo += t.lexema[1] + '"'
+            else:
+                v.codigo += t.lexema
         # identificador
         elif t.tipo_token == tipo_token.IDENTIFICADOR:
             print('Se reconoce IDENTIFICADOR: ', t.lexema)
-            v.codigo += t.lexema
+            if 'escribir' in v.lista_aux:
+                try:
+                    v.codigo += v.identificadores[t.lexema] + '", '
+                    v.codigo += t.lexema
+                except:
+                    print(f'Error en la linea {t.num_linea}, la variable: {t.lexema} no fue declarada')
+                    v.band = True
+            else:
+                v.codigo += t.lexema
+            # v.codigo += t.lexema
             # print(t)
         # (
         elif t.subtipo_token == subtipos_token.PARETESIS_IZQUIERDO:
@@ -1384,5 +1430,7 @@ def F():
 
 
 programa()
-print(v.obtener_codigo())
-print(v.identificadores)
+v.obtener_codigo()
+#if not v.band:
+# print(v.obtener_codigo())
+#print(v.identificadores)

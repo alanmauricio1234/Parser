@@ -1,0 +1,11 @@
+Proceso numeros_pares
+Entero n, i;
+Escribir "Escribe un numero -> ";
+Leer n;
+Para i = 0 Hasta n Hacer
+    Si (i % 2 == 0) Entonces
+        Escribir i;
+	    Escribir "\n";
+    FinSi  
+FinPara
+FinProceso
