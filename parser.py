@@ -29,7 +29,7 @@ class Verificador:
 
 v = Verificador()
 # Creamos nuestro analizador lexico
-l = analizador_lexico.AnalizadorLexico('numeros_pares.txt')
+l = analizador_lexico.AnalizadorLexico('suma.txt')
 # Creamos la lista de tokens
 l.crear_lista()
 
@@ -217,6 +217,8 @@ def tipo():
             print('Error: Tipo de dato incorrecto en la linea: ', t.num_linea)
         else:
             print('Se reconoce Tipo: ', t.subtipo_token)
+            v.lista_aux.append( 'funcion' )
+            v.lista_aux.append( es_tipo(t) )
             v.codigo += es_tipo(t) + ' '
 
 # <funcion> ::= <tipo> FUNCION <ID> (<parametros>) <listaOperaciones> REGRESAR <expresion> PCOMA FINFUNCION
@@ -232,10 +234,11 @@ def funcion():
     t = l.obtener_token()
     if t != None:
         if not se_espera(t.get_tipo_token(), tipo_token.IDENTIFICADOR):
-            error(tipo_token.IDENTIFICADOR, t.get_tipo(), t.get_num_linea())
+            error(tipo_token.IDENTIFICADOR, t.tipo_token, t.get_num_linea())
         else:
             print('Se reconoce IDENTIFICADOR: ', t.get_lexema())
             v.codigo += v.ident * v.e
+            # v.codigo += v.lista_aux[0] + ' '
             v.codigo += t.lexema
             # print(t)
     t = l.obtener_token()
@@ -295,6 +298,7 @@ def funcion():
             print('Se reconoce FINFUNCION')
             v.ident -= 1
             v.codigo += '}\n'
+            v.lista_aux.clear() # Limpiamos la lista auxiliar
             # print(t)
 
 
@@ -321,7 +325,8 @@ def hay_parametros():
             # Si hay un parametro
             # <unParametro> ::= ID
             print('Se reconoce IDENTIFICADOR: ', t.get_lexema())
-            # v.codigo += v.ident * '\t'
+            if 'funcion' in v.lista_aux:
+                v.codigo += v.lista_aux[1] + ' '
             v.codigo += t.lexema
             # print(t)
 
@@ -652,7 +657,7 @@ def invocacion():
             error(subtipos_token.PARETESIS_DERECHO, t.get_subtipo_token(), t.get_num_linea())
         else:
             print('Se reconoce PARENTESIS_DERECHO: )')
-            v.codigo += ')\n'
+            v.codigo += ')'
             # print(t)
 
 # <asignacion> ::= <ID> = <expresion> PCOMA
@@ -676,8 +681,29 @@ def asignacion():
             print('Se reconoce Asignacion: ', t.get_lexema())
             v.codigo += ' = '
             # print(t)
+    # Invocacion o Expresion
+    t = l.obtener_token()
+    if t != None:
+        # Vericamos Invocacion
+        if t.tipo_token == tipo_token.IDENTIFICADOR:
+            aux_t = t
+            t = l.obtener_token()
+            if t != None:
+                if t.subtipo_token == subtipos_token.PARETESIS_IZQUIERDO:
+                    # Regresamos los tokens
+                    # print('Se reconoce Invocacion')
+                    l.regresar_token( t ) # Regresamos el (
+                    l.regresar_token( aux_t ) # Regresamos el ID
+                    invocacion()
+                else:
+                    l.regresar_token( t )
+                    l.regresar_token( aux_t )
+                    expresion()
+        else:
+            l.regresar_token( t ) # Regresamos el token
+            expresion()
     # expresion
-    expresion()
+    # expresion()
     
     # PUNTO y Coma 
     t = l.obtener_token()
